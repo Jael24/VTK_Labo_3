@@ -7,7 +7,8 @@
 
 import vtk
 
-NB_POINTS = 3001 * 3001
+LONG_LARG = 3001
+NB_POINTS = LONG_LARG * LONG_LARG
 
 
 def read_altitude_file(altitudes):
@@ -21,12 +22,12 @@ def read_altitude_file(altitudes):
 
 
 def create_geometry(x, altitudes):
-    lat = (2.5 / 2) * (111 * 1000) * (-1)
+    lat = -(2.5 / 2) * (111 * 1000) * (-1)
     long = lat
-    incr = (2.5 * 111 * 1000) / 3001
+    incr = (2.5 * 111 * 1000) / LONG_LARG
 
-    for i in range(3001):
-        for j in range(3001):
+    for i in range(LONG_LARG):
+        for j in range(LONG_LARG):
             x.append((lat, long, float(altitudes[i][j])))
             lat += incr
         long += incr
@@ -34,7 +35,7 @@ def create_geometry(x, altitudes):
 
 def create_topology(pts):
     for i in range(NB_POINTS):
-        pts.append((i, i + 1, i + 3001, i + 3002))
+        pts.append((i, i + 1, i + LONG_LARG, i + LONG_LARG + 1))
 
 
 if __name__ == '__main__':
@@ -57,16 +58,29 @@ if __name__ == '__main__':
     for i in range(len(pts)):
         topology.InsertNextCell(len(pts[i]), pts[i])
     for i in range(NB_POINTS):
-        scalars.InsertTuple1(i, i)
+        scalars.InsertTuple1(i, float(altitudes[int(i / LONG_LARG)][i % LONG_LARG]))
 
     map_topo.SetPoints(geometry)
 
+    map_topo.SetPolys(topology)
+
     map_topo.GetPointData().SetScalars(scalars)
+
+    # Write .vtk file
+    file = vtk.vtkPolyDataWriter()
+    file.SetInputData(map_topo)
+    file.SetFileName("map.vtk")
+    file.Write()
+
+    # Read the file
+    reader = vtk.vtkPolyDataReader()
+    reader.SetFileName("map.vtk")
+    reader.Update()
 
     # Map the map
     mapMapper = vtk.vtkPolyDataMapper()
-    mapMapper.SetScalarRange(0, 7)
-    mapMapper.SetInputConnection(map_topo.GetOutputPort())
+    mapMapper.SetScalarRange(0, 400)
+    mapMapper.SetInputConnection(reader.GetOutputPort())
 
     # Create actor
     mapActor = vtk.vtkActor()
@@ -87,7 +101,7 @@ if __name__ == '__main__':
     #
     renWin = vtk.vtkRenderWindow()
     renWin.AddRenderer(ren1)
-    renWin.SetSize(400, 400)
+    renWin.SetSize(600, 600)
 
     #
     # The vtkRenderWindowInteractor class watches for events (e.g., keypress,
