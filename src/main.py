@@ -20,7 +20,7 @@ def read_altitude_file(altitudes):
 
     # Strips the newline character
     for line in lines:
-        if len(line) > 20: # skip first line
+        if len(line) > 20:  # skip first line
             altitudes.append(line.strip().split())
     f.close()
 
@@ -42,7 +42,6 @@ def create_topology(pts):
         pts.append((i, i + 1, i - (LONG_LARG - 1), i - LONG_LARG))
 
 
-
 if __name__ == '__main__':
     altitudes = []
     x = []
@@ -60,12 +59,14 @@ if __name__ == '__main__':
 
     for i in range(NB_POINTS):
         geometry.InsertPoint(i, x[i])
-        scalars.InsertTuple1(i, float(altitudes[int(i / LONG_LARG)][i % LONG_LARG]))
+        if float(altitudes[int(i / LONG_LARG)][i % LONG_LARG]) != 370:
+            scalars.InsertTuple1(i, float(altitudes[int(i / LONG_LARG)][i % LONG_LARG]))
+        else:
+            scalars.InsertTuple1(i, -1)
 
     for i in range(1, LONG_LARG):
-        for j in range(LONG_LARG-1):
+        for j in range(LONG_LARG - 1):
             topology.InsertNextCell(len(pts[i]), pts[(i) * LONG_LARG + j])
-
 
     map_topo.SetPoints(geometry)
     map_topo.SetPolys(topology)
@@ -93,10 +94,12 @@ if __name__ == '__main__':
         new_colour = ctransfer.GetColor((i * ((5000) / N)))
         lookup_table.SetTableValue(i, *new_colour)
 
+    lookup_table.SetBelowRangeColor(1.0, 0.0, 0.0, 1)
+    lookup_table.UseBelowRangeColorOn()
+
     lookup_table.Build()
     mapMapper.SetLookupTable(lookup_table)
     mapMapper.UseLookupTableScalarRangeOn()
-
 
     # Create actor
     mapActor = vtk.vtkActor()
@@ -108,7 +111,7 @@ if __name__ == '__main__':
     #
     ren1 = vtk.vtkRenderer()
     ren1.AddActor(mapActor)
-    ren1.SetBackground(0.1, 0.1, 0.1) #gris sidéral
+    ren1.SetBackground(0.1, 0.1, 0.1)  # gris sidéral
 
     #
     # Finally we create the render window which will show up on the screen
