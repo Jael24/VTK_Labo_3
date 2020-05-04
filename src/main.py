@@ -73,9 +73,30 @@ if __name__ == '__main__':
 
     # Map the map
     mapMapper = vtk.vtkPolyDataMapper()
-    scalarRange = map_topo.GetScalarRange()
-    mapMapper.SetScalarRange(scalarRange)
     mapMapper.SetInputData(map_topo)
+
+    # Create the Lookup Table (inspired by https://danstoj.pythonanywhere.com/article/vtk-1)
+
+    lookup_table = vtk.vtkLookupTable()
+    lookup_table.SetHueRange(0.0, 1.0)
+    lookup_table.SetSaturationRange(0.0, 0.5)
+    lookup_table.SetValueRange(0.25, 1.0)
+    lookup_table.SetTableRange(0.0, 3000.0)
+    N = 256
+    lookup_table.SetNumberOfColors(N)
+
+    ctransfer = vtk.vtkColorTransferFunction()
+    ctransfer.AddRGBPoint(0.0, 0.1, 0.58, 0.0)
+    ctransfer.AddRGBPoint(3000.0, 1.0, 1.0, 0.75)
+
+    for i in range(N):
+        new_colour = ctransfer.GetColor((i * ((5000) / N)))
+        lookup_table.SetTableValue(i, *new_colour)
+
+    lookup_table.Build()
+    mapMapper.SetLookupTable(lookup_table)
+    mapMapper.UseLookupTableScalarRangeOn()
+
 
     # Create actor
     mapActor = vtk.vtkActor()
