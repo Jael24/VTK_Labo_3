@@ -76,6 +76,19 @@ def is_lake(altitudes, x, y):
            altitudes[x + 1][y - 1] == current_alt and altitudes[x - 1][y + 1] == current_alt and altitudes[x - 1][
                y - 1] == current_alt
 
+# Copied from https://www.programcreek.com/python/example/12083/vtk.vtkPNGWriter
+def renderToPng(renWin, path):
+
+    w2i = vtk.vtkWindowToImageFilter()
+    w2i.SetInput(renWin)
+    w2i.Update()
+
+    pngfile = vtk.vtkPNGWriter()
+
+    pngfile.SetInputConnection(w2i.GetOutputPort())
+    pngfile.SetFileName(path)
+    pngfile.Write()
+
 
 if __name__ == '__main__':
     altitudes = []
@@ -98,7 +111,7 @@ if __name__ == '__main__':
     for i in range(NB_POINTS):
         geometry.InsertPoint(i, x[i])
         # To create the map with the sea level at 370 meters, add the code in comment below
-        if is_lake(altitudes, int(i / LONG_LARG), i % LONG_LARG):  # or float(altitudes[int(i / LONG_LARG)][i % LONG_LARG]) <= 370:
+        if is_lake(altitudes, int(i / LONG_LARG), i % LONG_LARG) or float(altitudes[int(i / LONG_LARG)][i % LONG_LARG]) <= 370:
             scalars.InsertTuple1(i, -1)
         else:
             scalars.InsertTuple1(i, float(altitudes[int(i / LONG_LARG)][i % LONG_LARG]))
@@ -160,6 +173,10 @@ if __name__ == '__main__':
     renWin = vtk.vtkRenderWindow()
     renWin.AddRenderer(ren1)
     renWin.SetSize(600, 600)
+    renWin.Render()
+
+    # Save to png
+    renderToPng(renWin, "map.png")
 
     #
     # The vtkRenderWindowInteractor class watches for events (e.g., keypress,
@@ -194,4 +211,5 @@ if __name__ == '__main__':
     # the appropriate Doxygen documentation.)
     #
     iren.Initialize()
+
     iren.Start()
