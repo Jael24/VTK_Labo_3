@@ -76,9 +76,9 @@ def is_lake(altitudes, x, y):
            altitudes[x + 1][y - 1] == current_alt and altitudes[x - 1][y + 1] == current_alt and altitudes[x - 1][
                y - 1] == current_alt
 
+
 # Copied from https://www.programcreek.com/python/example/12083/vtk.vtkPNGWriter
 def renderToPng(renWin, path):
-
     w2i = vtk.vtkWindowToImageFilter()
     w2i.SetInput(renWin)
     w2i.Update()
@@ -111,7 +111,8 @@ if __name__ == '__main__':
     for i in range(NB_POINTS):
         geometry.InsertPoint(i, x[i])
         # To create the map with the sea level at 370 meters, add the code in comment below
-        if is_lake(altitudes, int(i / LONG_LARG), i % LONG_LARG) or float(altitudes[int(i / LONG_LARG)][i % LONG_LARG]) <= 370:
+        if is_lake(altitudes, int(i / LONG_LARG), i % LONG_LARG):  # or float(
+            # altitudes[int(i / LONG_LARG)][i % LONG_LARG]) <= 370:
             scalars.InsertTuple1(i, -1)
         else:
             scalars.InsertTuple1(i, float(altitudes[int(i / LONG_LARG)][i % LONG_LARG]))
@@ -165,10 +166,14 @@ if __name__ == '__main__':
     ren1.AddActor(mapActor)
     ren1.SetBackground(0.1, 0.1, 0.1)  # gris sidéral
 
+    # Place the camera beautifully
+    ren1.GetActiveCamera().Azimuth(90)
+    ren1.GetActiveCamera().Roll(-90)
+    ren1.ResetCamera()
     #
     # Finally we create the render window which will show up on the screen
     # We put our renderer into the render window using AddRenderer. We also
-    # set the size to be 300 pixels by 300.
+    # set the size to be 600 pixels by 600.
     #
     renWin = vtk.vtkRenderWindow()
     renWin.AddRenderer(ren1)
@@ -176,7 +181,7 @@ if __name__ == '__main__':
     renWin.Render()
 
     # Save to png
-    renderToPng(renWin, "map.png")
+    # renderToPng(renWin, "map.png")
 
     #
     # The vtkRenderWindowInteractor class watches for events (e.g., keypress,
